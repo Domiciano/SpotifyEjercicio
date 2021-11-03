@@ -1,4 +1,4 @@
-package edu.co.icesi.firestoreejemplo;
+package edu.co.icesi.firestoreejemplo.models;
 
 public class Chat {
 

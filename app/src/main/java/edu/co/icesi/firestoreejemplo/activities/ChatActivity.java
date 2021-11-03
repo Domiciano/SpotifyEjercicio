@@ -1,17 +1,27 @@
-package edu.co.icesi.firestoreejemplo;
+package edu.co.icesi.firestoreejemplo.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.Gson;
 
 import java.util.Date;
 import java.util.UUID;
+
+import edu.co.icesi.firestoreejemplo.R;
+import edu.co.icesi.firestoreejemplo.fcm.FCMMessage;
+import edu.co.icesi.firestoreejemplo.models.Chat;
+import edu.co.icesi.firestoreejemplo.models.Message;
+import edu.co.icesi.firestoreejemplo.models.User;
+import edu.co.icesi.firestoreejemplo.util.HTTPSWebUtilDomi;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -35,6 +45,8 @@ public class ChatActivity extends AppCompatActivity {
 
         messageET = findViewById(R.id.messageET);
         messagesTV = findViewById(R.id.messagesTV);
+        messagesTV.setMovementMethod(new ScrollingMovementMethod());
+
         sendBtn = findViewById(R.id.sendBtn);
 
 
@@ -59,19 +71,35 @@ public class ChatActivity extends AppCompatActivity {
                     Message m = new Message(UUID.randomUUID().toString(), messageET.getText().toString(), user.getId(), new Date().getTime());
                     FirebaseFirestore.getInstance().collection("chats")
                             .document(chat.getId()).collection("messages").document(m.getId()).set(m);
+
+
+                    //Enviar la noticiación
+
+
+                    new Thread(
+                            ()->{
+                                FCMMessage<Message> fcmMessage = new FCMMessage<>("/topics/"+contact.getId(), m);
+                                String json = new Gson().toJson(fcmMessage);
+                                new HTTPSWebUtilDomi().POSTtoFCM(json);
+                            }
+                    ).start();
+
                 }
         );
 
     }
 
     private void getMessages() {
-        FirebaseFirestore.getInstance().collection("chats").document(chat.getId()).collection("messages").addSnapshotListener(
+        FirebaseFirestore.getInstance().collection("chats").document(chat.getId()).collection("messages").orderBy("date").limitToLast(10).addSnapshotListener(
                 (value, error) -> {
 
-                    messagesTV.setText("");
-                    for(DocumentSnapshot doc : value.getDocuments()){
-                        Message msg = doc.toObject(Message.class);
-                        messagesTV.append(msg.getMessage()+"\n\n");
+                    for(DocumentChange dc : value.getDocumentChanges()){
+                        switch (dc.getType()){
+                            case ADDED:
+                                Message message = dc.getDocument().toObject(Message.class);
+                                messagesTV.append(message.getMessage()+ "\n\n");
+                                break;
+                        }
                     }
 
                 }

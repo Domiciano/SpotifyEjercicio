@@ -1,10 +1,9 @@
-package edu.co.icesi.firestoreejemplo;
+package edu.co.icesi.firestoreejemplo.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -13,8 +12,14 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.gson.Gson;
 
 import java.util.UUID;
+
+import edu.co.icesi.firestoreejemplo.R;
+import edu.co.icesi.firestoreejemplo.models.User;
+import edu.co.icesi.firestoreejemplo.util.NotificationUtil;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,6 +40,11 @@ public class MainActivity extends AppCompatActivity {
 
         loginBtn.setOnClickListener(this::login);
 
+
+        NotificationUtil.showNotification(this, "AppMoviles","Hola mundo");
+
+        FirebaseMessaging.getInstance().subscribeToTopic("promo");
+
     }
 
     private void login(View view) {
@@ -50,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                     if(task.getResult().size() == 0){
                         FirebaseFirestore.getInstance().collection("users").document(user.getId()).set(user);
                         Intent intent = new Intent(this, HomeActivity.class);
-                        intent.putExtra("user", user);
+                        saveUser(user);
                         startActivity(intent);
                     }
 
@@ -65,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         if(existingUser.getPassword().equals(pass)){
                             Intent intent = new Intent(this, HomeActivity.class);
-                            intent.putExtra("user",existingUser);
+                            saveUser(existingUser);
                             startActivity(intent);
                         }else{
                             Toast.makeText(this, "Contraseña incorrecta", Toast.LENGTH_LONG).show();
@@ -80,5 +90,11 @@ public class MainActivity extends AppCompatActivity {
 
 
         //
+    }
+
+    private void saveUser(User user) {
+        String json = new Gson().toJson(user);
+        getSharedPreferences("appmoviles", MODE_PRIVATE).edit().putString("user", json).apply();
+
     }
 }
