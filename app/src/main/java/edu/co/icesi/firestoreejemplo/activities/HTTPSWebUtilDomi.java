@@ -1,4 +1,4 @@
-package edu.co.icesi.firestoreejemplo.util;
+package edu.co.icesi.firestoreejemplo.activities;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -25,10 +25,15 @@ import javax.net.ssl.X509TrustManager;
 
 public class HTTPSWebUtilDomi {
 
-    public String GETrequest(String url) {
+    public String GETrequest(String title) {
         try {
-            URL page = new URL(url);
+            URL page = new URL("https://api.spotify.com/v1/search?q="+title+"&type=track");
             HttpsURLConnection connection = (HttpsURLConnection) page.openConnection();
+
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Authorization", "Bearer BQA9uzSqEFBIIUtnpwinsx6wVDI64fmDViiIjKddReoKNtNVnj230Xaes9G8AwZlyZNQy39m5jHH3aZQH7D6yYGUqW-Je-yBF7RGxFH_cJuMmbuHEGUCirDCKhnAZlxoIdCHfa10LXhN0YmjX-ECGfXlvQCBYG-9eNo8jw");
+
+
             InputStream is = connection.getInputStream();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] buffer = new byte[4096];
@@ -83,7 +88,7 @@ public class HTTPSWebUtilDomi {
 
 
     public static final String FCM_KEY = "AAAA5Y28dsA:APA91bHvrWHBdEZIbpl2hmPufyiNgJp1ZNiCenoAb58dM2ydWkGTx5cYtQzlVewJUL2PL0s1Rkir0mTLKtEA0vrrHyeG1bID3HuCd0UVtO91bcuciPPWxZcSsosmRGmGV9N4tEeH90Gr";
-    
+
     public String POSTtoFCM(String json) {
         try {
             URL page = new URL("https://fcm.googleapis.com/fcm/send");
